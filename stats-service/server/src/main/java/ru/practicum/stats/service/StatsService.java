@@ -20,7 +20,7 @@ public class StatsService {
 
     @Transactional
     public EndpointHitDto createEndpointHit(EndpointHitDto endpointHitDto) {
-        EndpointHit saved =  statsRepository.save(endpointHitMapper.toEntity(endpointHitDto));
+        EndpointHit saved = statsRepository.save(endpointHitMapper.toEntity(endpointHitDto));
         return endpointHitMapper.toDto(saved);
     }
 

@@ -19,7 +19,7 @@ public interface StatsRepository extends JpaRepository<EndpointHit, Long> {
             ORDER BY COUNT(DISTINCT eh.ip) DESC
             """)
     List<ViewStatsDto> getStatsUnique(@Param("start") LocalDateTime start,
-                                       @Param("end") LocalDateTime end);
+                                      @Param("end") LocalDateTime end);
 
     @Query("""
             SELECT new ru.practicum.stats.dto.ViewStatsDto(eh.app, eh.uri, COUNT(eh))
