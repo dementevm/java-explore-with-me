@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.stats.dto.EndpointHitDto;
 import ru.practicum.stats.dto.ViewStatsDto;
@@ -14,7 +13,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 
-@Validated
 @RestController
 @RequiredArgsConstructor
 public class StatsController {
@@ -35,7 +33,7 @@ public class StatsController {
             LocalDateTime end,
             @RequestParam(required = false)
             List<String> uris,
-            @RequestParam(required = false, defaultValue = "false")
+            @RequestParam(defaultValue = "false")
             Boolean unique
     ) {
         return statsService.getEndpointHits(start, end, uris, unique);
