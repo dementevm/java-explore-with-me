@@ -1,10 +1,10 @@
-DROP TABLE events CASCADE;
-DROP TABLE users CASCADE;
-DROP TABLE locations CASCADE;
-DROP TABLE categories CASCADE;
-DROP TABLE compilation_events CASCADE;
-DROP TABLE compilations CASCADE;
-DROP TABLE requests CASCADE;
+-- DROP TABLE events CASCADE;
+-- DROP TABLE users CASCADE;
+-- DROP TABLE locations CASCADE;
+-- DROP TABLE categories CASCADE;
+-- DROP TABLE compilation_events CASCADE;
+-- DROP TABLE compilations CASCADE;
+-- DROP TABLE requests CASCADE;
 
 CREATE TABLE IF NOT EXISTS users
 (
