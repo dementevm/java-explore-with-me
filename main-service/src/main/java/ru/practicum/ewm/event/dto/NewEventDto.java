@@ -1,10 +1,7 @@
 package ru.practicum.ewm.event.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import ru.practicum.ewm.location.dto.LocationDto;
 
 import java.time.LocalDateTime;
@@ -30,6 +27,7 @@ public record NewEventDto(
 
         Boolean paid,
 
+        @PositiveOrZero
         Integer participantLimit,
 
         Boolean requestModeration

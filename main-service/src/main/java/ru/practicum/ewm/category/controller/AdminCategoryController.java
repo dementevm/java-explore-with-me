@@ -17,6 +17,7 @@ import ru.practicum.ewm.category.service.CategoryService;
 public class AdminCategoryController {
     private final CategoryService categoryService;
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/admin/categories")
     public CategoryDto createCategory(@Valid @RequestBody NewCategoryDto category) {
         return categoryService.createCategory(category);
@@ -29,7 +30,6 @@ public class AdminCategoryController {
     }
 
     @PatchMapping("/admin/categories/{catId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     public CategoryDto updateCategory(@PathVariable @Positive Long catId, @Valid @RequestBody CategoryDto category) {
         return categoryService.updateCategory(category, catId);
     }

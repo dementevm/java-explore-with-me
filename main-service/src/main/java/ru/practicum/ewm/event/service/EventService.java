@@ -16,13 +16,17 @@ import ru.practicum.ewm.event.enums.EventState;
 import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.repository.EventRepository;
+import ru.practicum.ewm.exception.BadRequestException;
 import ru.practicum.ewm.exception.EventUpdateException;
 import ru.practicum.ewm.exception.ObjectNotFoundException;
 import ru.practicum.ewm.location.model.Location;
 import ru.practicum.ewm.location.service.LocationService;
+import ru.practicum.ewm.request.enums.ParticipationRequestStatus;
+import ru.practicum.ewm.request.repository.RequestRepository;
 import ru.practicum.ewm.user.mapper.UserMapper;
 import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.user.service.UserService;
+import ru.practicum.stats.client.StatsClient;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,6 +41,8 @@ public class EventService {
     private final UserMapper userMapper;
     private final CategoryMapper categoryMapper;
     private final CategoryService categoryService;
+    private final StatsClient statsClient;
+    private final RequestRepository requestRepository;
 
     @Transactional(readOnly = true)
     public Event getEventById(Long eventId) {
@@ -87,6 +93,7 @@ public class EventService {
         if (event.getState() == EventState.PUBLISHED) {
             throw new EventUpdateException("Only pending or canceled events can be changed");
         }
+
         LocalDateTime newDate = dto.eventDate();
         if (newDate != null && newDate.isBefore(LocalDateTime.now().plusHours(2))) {
             throw new EventUpdateException("Time of updated event can't be before 2 hours from now");
@@ -94,8 +101,23 @@ public class EventService {
 
         hydrateUpdateEvent(event, dto);
 
+        if (dto.stateAction() != null) {
+            switch (dto.stateAction()) {
+                case SEND_TO_REVIEW -> {
+                    if (event.getState() != EventState.CANCELED && event.getState() != EventState.PENDING) {
+                        throw new EventUpdateException("Only pending or canceled events can be changed");
+                    }
+                    event.setState(EventState.PENDING);
+                }
+                case CANCEL_REVIEW -> {
+                    event.setState(EventState.CANCELED);
+                }
+            }
+        }
+
         eventMapper.updateEventFromUserDto(dto, event);
-        return eventMapper.toEventFullDto(eventRepository.save(event));
+        Event saved = eventRepository.save(event);
+        return eventMapper.toEventFullDto(saved);
     }
 
     @Transactional(readOnly = true)
@@ -110,6 +132,9 @@ public class EventService {
     ) {
         Pageable pageable = PageRequest.of(from / size, size);
         List<Event> events = eventRepository.findAdminEvents(users, states, categories, rangeStart, rangeEnd, pageable);
+
+        events.forEach(this::hydrateConfirmedRequests);
+
         return events.stream()
                 .map(eventMapper::toEventFullDto)
                 .toList();
@@ -129,7 +154,7 @@ public class EventService {
 
         if (dto.stateAction() != null) {
             if (dto.stateAction() == AdminActionState.PUBLISH_EVENT) {
-                if (event.getState() != EventState.PENDING) {
+                if (event.getState() != null && event.getState() != EventState.PENDING) {
                     throw new EventUpdateException("Cannot publish the event because it's not in the right state: %s".formatted(event.getState()));
                 }
                 LocalDateTime eventDate = dto.eventDate() != null ? dto.eventDate() : event.getEventDate();
@@ -176,47 +201,70 @@ public class EventService {
             Integer from,
             Integer size
     ) {
+        String textPattern = null;
+        if (text != null && !text.isBlank()) {
+            textPattern = "%" + text.toLowerCase() + "%";
+        }
+
+        if (rangeStart != null && rangeEnd != null && rangeEnd.isBefore(rangeStart)) {
+            throw new BadRequestException("rangeEnd must be after rangeStart");
+        }
+
         if (rangeStart == null && rangeEnd == null) {
             rangeStart = LocalDateTime.now();
         }
-        if (categories != null && categories.isEmpty()) {
-            categories = null;
-        }
-        if (onlyAvailable == null) {
-            onlyAvailable = false;
-        }
 
-        Sort sortSpec;
-        if (sort == EventSort.VIEWS) {
-            sortSpec = Sort.by(Sort.Direction.DESC, "views");
-        } else {
-            sortSpec = Sort.by(Sort.Direction.ASC, "eventDate");
-        }
-
-        Pageable pageable = PageRequest.of(from / size, size, sortSpec);
+        Pageable pageable = switch (sort) {
+            case EVENT_DATE -> PageRequest.of(from / size, size, Sort.by("eventDate").ascending());
+            case VIEWS -> PageRequest.of(from / size, size, Sort.by("views").descending());
+            case null -> PageRequest.of(from / size, size);
+        };
 
         List<Event> events = eventRepository.findPublicEvents(
-                text,
+                textPattern,
                 categories,
                 paid,
                 rangeStart,
                 rangeEnd,
-                onlyAvailable,
+                Boolean.TRUE.equals(onlyAvailable),
                 pageable
         );
+
+        events.forEach(this::hydrateConfirmedRequests);
 
         return events.stream()
                 .map(eventMapper::toEventShortDto)
                 .toList();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public EventFullDto getPublishedEvent(Long eventId) {
         Event event = getEventById(eventId);
         if (event.getState() != EventState.PUBLISHED) {
             throw new ObjectNotFoundException("Event with id %d not found".formatted(eventId));
         }
-        return eventMapper.toEventFullDto(event);
+
+        hydrateConfirmedRequests(event);
+
+        LocalDateTime start = event.getCreatedOn() != null
+                ? event.getCreatedOn()
+                : event.getEventDate();
+        LocalDateTime end = LocalDateTime.now();
+
+        String uri = "/events/" + eventId;
+
+        long views = statsClient.getViews(start, end, uri);
+        event.setViews(views);
+        Event saved = eventRepository.save(event);
+        return eventMapper.toEventFullDto(saved);
+    }
+
+    private void hydrateConfirmedRequests(Event event) {
+        long confirmed = requestRepository.countByEventIdAndStatus(
+                event.getId(),
+                ParticipationRequestStatus.CONFIRMED
+        );
+        event.setConfirmedRequests(confirmed);
     }
 
 }

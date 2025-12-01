@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +24,7 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @Validated
+@Slf4j
 public class PublicEventController {
     private final EventService eventService;
     private final StatsClient statsClient;
@@ -42,11 +44,15 @@ public class PublicEventController {
             @Positive @RequestParam(name = "size", defaultValue = "10") Integer size,
             HttpServletRequest request
     ) {
-        statsClient.hit(
-                "ewm-main-service",
-                request.getRequestURI(),
-                request.getRemoteAddr()
-        );
+        try {
+            statsClient.hit(
+                    "ewm-main-service",
+                    request.getRequestURI(),
+                    request.getRemoteAddr()
+            );
+        } catch (Exception e) {
+            log.warn("Failed to send stats hit: {}", e.getMessage());
+        }
 
         return eventService.getPublicEvents(
                 text,
@@ -66,11 +72,15 @@ public class PublicEventController {
             @PathVariable("id") @Positive Long id,
             HttpServletRequest request
     ) {
-        statsClient.hit(
-                "ewm-main-service",
-                request.getRequestURI(),
-                request.getRemoteAddr()
-        );
+        try {
+            statsClient.hit(
+                    "ewm-main-service",
+                    request.getRequestURI(),
+                    request.getRemoteAddr()
+            );
+        } catch (Exception e) {
+            log.warn("Failed to send stats hit: {}", e.getMessage());
+        }
         return eventService.getPublishedEvent(id);
     }
 

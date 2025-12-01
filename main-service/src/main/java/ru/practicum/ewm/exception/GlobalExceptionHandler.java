@@ -4,9 +4,12 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -99,4 +102,55 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(exceptionDto, HttpStatus.CONFLICT);
     }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ExceptionDto> handleMissingServletRequestParameterException(
+            MissingServletRequestParameterException ex
+    ) {
+        log.warn("Отсутствует обязательный параметр запроса: {}", ex.getMessage());
+        ExceptionDto exceptionDto = exceptionMapper.mapExceptionParamsToDto(
+                ex.getMessage(),
+                "Incorrectly made request.",
+                HttpStatus.BAD_REQUEST
+        );
+        return new ResponseEntity<>(exceptionDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ExceptionDto> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        log.warn("Некорректное тело запроса: {}", ex.getMessage());
+        ExceptionDto exceptionDto = exceptionMapper.mapExceptionParamsToDto(
+                ex.getMessage(),
+                "For the requested operation the conditions are not met.",
+                HttpStatus.CONFLICT
+        );
+        return new ResponseEntity<>(exceptionDto, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ExceptionDto> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        ex.getMostSpecificCause();
+        String message = ex.getMostSpecificCause().getMessage();
+
+        log.warn("Нарушение целостности данных: {}", message);
+
+        ExceptionDto exceptionDto = exceptionMapper.mapExceptionParamsToDto(
+                message,
+                "Integrity constraint has been violated.",
+                HttpStatus.CONFLICT
+        );
+        return new ResponseEntity<>(exceptionDto, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ExceptionDto> handleBadRequestException(BadRequestException ex) {
+        log.warn("Некорректный запрос: {}", ex.getMessage());
+        ExceptionDto exceptionDto = exceptionMapper.mapExceptionParamsToDto(
+                ex.getMessage(),
+                "Incorrectly made request.",
+                HttpStatus.BAD_REQUEST
+        );
+        return new ResponseEntity<>(exceptionDto, HttpStatus.BAD_REQUEST);
+    }
+
 }

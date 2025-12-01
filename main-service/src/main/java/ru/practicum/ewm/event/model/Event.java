@@ -68,5 +68,17 @@ public class Event {
         if (this.participantLimit == null) {
             this.participantLimit = 0;
         }
+        if (this.createdOn == null) {
+            this.createdOn = LocalDateTime.now();
+        }
+        if (this.views == null) {
+            this.views = 0L;
+        }
+        if (this.state == null) {
+            this.state = EventState.PENDING;
+        }
+        if (this.confirmedRequests == null) {
+            this.confirmedRequests = 0L;
+        }
     }
 }

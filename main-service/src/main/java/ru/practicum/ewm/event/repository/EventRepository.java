@@ -31,8 +31,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             WHERE (:users IS NULL OR e.initiator.id IN :users)
               AND (:states IS NULL OR e.state IN :states)
               AND (:categories IS NULL OR e.category.id IN :categories)
-              AND (:rangeStart IS NULL OR e.eventDate >= :rangeStart)
-              AND (:rangeEnd IS NULL OR e.eventDate <= :rangeEnd)
+              AND e.eventDate >= COALESCE(:rangeStart, e.eventDate)
+              AND e.eventDate <= COALESCE(:rangeEnd, e.eventDate)
             """)
     List<Event> findAdminEvents(
             @Param("users") List<Long> users,
@@ -47,20 +47,24 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             SELECT e
             FROM Event e
             WHERE e.state = ru.practicum.ewm.event.enums.EventState.PUBLISHED
-              AND (:text IS NULL OR (
-                    LOWER(e.annotation) LIKE LOWER(CONCAT('%', :text, '%'))
-                    OR LOWER(e.description) LIKE LOWER(CONCAT('%', :text, '%'))
-              ))
+              AND (
+                    :textPattern IS NULL OR (
+                        LOWER(e.annotation)  LIKE :textPattern
+                        OR LOWER(e.description) LIKE :textPattern
+                    )
+              )
               AND (:categories IS NULL OR e.category.id IN :categories)
               AND (:paid IS NULL OR e.paid = :paid)
-              AND (:rangeStart IS NULL OR e.eventDate >= :rangeStart)
-              AND (:rangeEnd IS NULL OR e.eventDate <= :rangeEnd)
-              AND (:onlyAvailable = false
-                   OR e.participantLimit = 0
-                   OR e.confirmedRequests < e.participantLimit)
+              AND e.eventDate >= COALESCE(:rangeStart, e.eventDate)
+              AND e.eventDate <= COALESCE(:rangeEnd, e.eventDate)
+              AND (
+                    :onlyAvailable = false
+                    OR e.participantLimit = 0
+                    OR e.confirmedRequests < e.participantLimit
+              )
             """)
     List<Event> findPublicEvents(
-            @Param("text") String text,
+            @Param("textPattern") String textPattern,
             @Param("categories") List<Long> categories,
             @Param("paid") Boolean paid,
             @Param("rangeStart") LocalDateTime rangeStart,

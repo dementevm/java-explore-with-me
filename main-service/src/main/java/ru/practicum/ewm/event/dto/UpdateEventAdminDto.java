@@ -1,6 +1,8 @@
 package ru.practicum.ewm.event.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import ru.practicum.ewm.event.enums.AdminActionState;
 import ru.practicum.ewm.location.dto.LocationDto;
@@ -16,6 +18,7 @@ public record UpdateEventAdminDto(
         @Size(min = 20, max = 7000)
         String description,
 
+        @FutureOrPresent
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         LocalDateTime eventDate,
 
@@ -23,6 +26,7 @@ public record UpdateEventAdminDto(
 
         Boolean paid,
 
+        @PositiveOrZero
         Integer participantLimit,
 
         Boolean requestModeration,

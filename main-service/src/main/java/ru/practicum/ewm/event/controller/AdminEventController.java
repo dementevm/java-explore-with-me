@@ -1,8 +1,10 @@
 package ru.practicum.ewm.event.controller;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.event.dto.EventFullDto;
@@ -24,7 +26,9 @@ public class AdminEventController {
             @RequestParam(name = "users", required = false) List<Long> users,
             @RequestParam(name = "states", required = false) List<EventState> states,
             @RequestParam(name = "categories", required = false) List<Long> categories,
+            @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
             @RequestParam(name = "rangeStart", required = false) LocalDateTime rangeStart,
+            @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
             @RequestParam(name = "rangeEnd", required = false) LocalDateTime rangeEnd,
             @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
             @Positive @RequestParam(name = "size", defaultValue = "10") Integer size
@@ -35,7 +39,7 @@ public class AdminEventController {
     @PatchMapping("/admin/events/{eventId}")
     public EventFullDto updateEventByAdmin(
             @PathVariable @Positive Long eventId,
-            @RequestBody UpdateEventAdminDto dto
+            @RequestBody @Valid UpdateEventAdminDto dto
     ) {
         return eventService.updateEventByAdmin(eventId, dto);
     }
