@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 public class ExceptionDto {
-    String message;
-    String reason;
-    String status;
-    LocalDateTime timestamp;
+    private String message;
+    private String reason;
+    private String status;
+    private LocalDateTime timestamp;
 }
