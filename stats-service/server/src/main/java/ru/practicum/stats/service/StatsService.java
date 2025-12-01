@@ -1,5 +1,6 @@
 package ru.practicum.stats.service;
 
+import jakarta.validation.ValidationException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,10 @@ public class StatsService {
 
     @Transactional(readOnly = true)
     public List<ViewStatsDto> getEndpointHits(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
+        if (start != null && end != null && end.isBefore(start)) {
+            throw new ValidationException("End must be after start");
+        }
+
         if (uris == null || uris.isEmpty()) {
             if (unique) {
                 return statsRepository.getStatsUnique(start, end);
