@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -40,6 +41,17 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<String> handleValidation(ValidationException e) {
+        String error = e.getMessage();
+        log.warn(error);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<String> handleMissingServletRequestParameterException(
+            MissingServletRequestParameterException e
+    ) {
+        log.warn("Отсутствует обязательный параметр запроса: {}", e.getMessage());
         String error = e.getMessage();
         log.warn(error);
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);

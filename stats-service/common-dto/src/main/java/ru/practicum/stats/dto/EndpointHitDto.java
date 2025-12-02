@@ -1,13 +1,11 @@
 package ru.practicum.stats.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.time.LocalDateTime;
-
 @Data
+@AllArgsConstructor
 public class EndpointHitDto {
 
     private Long id;
@@ -21,7 +19,6 @@ public class EndpointHitDto {
     @NotBlank
     private String ip;
 
-    @NotNull
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime timestamp;
+    @NotBlank
+    private String timestamp;
 }
