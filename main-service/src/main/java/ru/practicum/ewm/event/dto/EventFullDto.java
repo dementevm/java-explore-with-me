@@ -2,11 +2,13 @@ package ru.practicum.ewm.event.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import ru.practicum.ewm.category.dto.CategoryDto;
+import ru.practicum.ewm.comment.dto.CommentDto;
 import ru.practicum.ewm.event.enums.EventState;
 import ru.practicum.ewm.location.dto.LocationDto;
 import ru.practicum.ewm.user.dto.UserShortDto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record EventFullDto(
         Long id,
@@ -27,7 +29,8 @@ public record EventFullDto(
         Boolean requestModeration,
         EventState state,
         String title,
-        Long views
+        Long views,
+        List<CommentDto> comments
 ) {
 }
 

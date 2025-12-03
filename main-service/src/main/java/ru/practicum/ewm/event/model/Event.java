@@ -4,11 +4,14 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import ru.practicum.ewm.category.model.Category;
+import ru.practicum.ewm.comment.model.Comment;
 import ru.practicum.ewm.event.enums.EventState;
 import ru.practicum.ewm.location.model.Location;
 import ru.practicum.ewm.user.model.User;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -60,6 +63,10 @@ public class Event {
     private EventState state;
 
     private Long views;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
+    @OrderBy("createdOn DESC")
+    private List<Comment> comments = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
