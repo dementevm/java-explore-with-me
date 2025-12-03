@@ -1,10 +1,11 @@
--- DROP TABLE events CASCADE;
--- DROP TABLE users CASCADE;
--- DROP TABLE locations CASCADE;
--- DROP TABLE categories CASCADE;
--- DROP TABLE compilation_events CASCADE;
--- DROP TABLE compilations CASCADE;
--- DROP TABLE requests CASCADE;
+DROP TABLE IF EXISTS events CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS locations CASCADE;
+DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS compilation_events CASCADE;
+DROP TABLE IF EXISTS compilations CASCADE;
+DROP TABLE IF EXISTS requests CASCADE;
+DROP TABLE IF EXISTS comments CASCADE;
 
 CREATE TABLE IF NOT EXISTS users
 (
@@ -102,3 +103,21 @@ ALTER TABLE requests
 
 ALTER TABLE requests
     ADD CONSTRAINT FK_REQUESTS_ON_REQUESTER FOREIGN KEY (requester_id) REFERENCES users (id);
+
+
+CREATE TABLE IF NOT EXISTS comments
+(
+    id         BIGSERIAL                   NOT NULL,
+    text       VARCHAR(2000)               NOT NULL,
+    event_id   BIGINT                      NOT NULL,
+    author_id  BIGINT                      NOT NULL,
+    created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    updated_on TIMESTAMP WITHOUT TIME ZONE,
+    CONSTRAINT pk_comments PRIMARY KEY (id)
+);
+
+ALTER TABLE comments
+    ADD CONSTRAINT FK_COMMENTS_ON_AUTHOR FOREIGN KEY (author_id) REFERENCES users (id);
+
+ALTER TABLE comments
+    ADD CONSTRAINT FK_COMMENTS_ON_EVENT FOREIGN KEY (event_id) REFERENCES events (id);
