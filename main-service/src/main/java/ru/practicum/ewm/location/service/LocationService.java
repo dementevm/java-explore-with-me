@@ -14,7 +14,6 @@ public class LocationService {
     private final LocationRepository locationRepository;
     private final LocationMapper locationMapper;
 
-    @Transactional
     public Location getOrCreateLocation(Float lat, Float lon) {
         return locationRepository.findByLatAndLon(lat, lon)
                 .orElse(createLocation(new NewLocationDto(lat, lon)));
