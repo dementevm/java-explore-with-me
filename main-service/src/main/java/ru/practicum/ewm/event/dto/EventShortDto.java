@@ -2,9 +2,11 @@ package ru.practicum.ewm.event.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import ru.practicum.ewm.category.dto.CategoryDto;
+import ru.practicum.ewm.comment.dto.CommentDto;
 import ru.practicum.ewm.user.dto.UserShortDto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record EventShortDto(
         Long id,
@@ -17,6 +19,7 @@ public record EventShortDto(
         Boolean paid,
         String title,
         Long confirmedRequests,
-        Long views
+        Long views,
+        List<CommentDto> comments
 ) {
 }
